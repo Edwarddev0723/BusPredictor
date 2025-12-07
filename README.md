@@ -141,7 +141,7 @@ python Train.py --routeid --direction --epoch --day --mode
 - `--direction`：去程/返程（0/1） 
 - `--epoch`：訓練圈數  
 - `--day`：指定要針對哪一天（週幾）的資料訓練  
-- `--mode`：`a | c | r | ac | ar | cr | acr  `（詳見上方）
+- `--mode`：`a | c | r | ac | ar | cr | acr  `
 
 ---
 
@@ -159,7 +159,7 @@ python Inference.py --routeid --direction --day --mode acr --start_date --end_da
 - `--routeid`：公車路線 ID  
 - `--direction`：去程/返程（0/1）
 - `--day`：測試的星期（需與訓練/統計對齊）
-- `--mode`：`a | ac | ar | acr`
+- `--mode`：`a | c | r | ac | ar | cr | acr  `
 - `--start_date`、`--end_date`：統計區間（YYYY-MM-DD）
 
 ---
