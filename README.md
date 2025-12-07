@@ -1,5 +1,5 @@
 ## 系統架構
-./img/bus.png
+![image](./img/bus.png)
 
 ## 目錄結構
 
