@@ -128,8 +128,8 @@ python TrainingDataPrepare.py --routeid --direction --day --start_date --end_dat
   - `acr`：`drive * ratio + α * stay_history + (1-α) * stay_current + constant`  
 
 **訓練流程**：
-- 逐**站別**訓練，並依預測距離分成三種 TrainingType：`-1`（下一站）、`-2`（下下站）、`-other`（更遠站點彙整）。  
-- 使用 MSELoss 最小化預測與 GroundTruth 的誤差；每站會紀錄歷史 `Loss/Alpha/Constant` 序列，並挑選 **最小 Loss** 時刻的參數作為該站最終參數。  
+- 逐站別訓練，並依預測距離分成三種 TrainingType：`-1`（下一站）、`-2`（下下站）、`-other`（更遠站點彙整）。  
+- 使用 MSELoss 最小化預測與 GroundTruth 的誤差；每站會紀錄歷史 `Loss/Alpha/Constant` 序列，並挑選最小Loss的參數作為該站最終參數。  
 - 所有站點參數彙整為 `training_result/<route>/<direction>/<mode>/parameters_<day>.xlsx`。
 
 **指令**：
