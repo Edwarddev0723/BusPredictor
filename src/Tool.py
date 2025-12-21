@@ -49,7 +49,7 @@ CheckedTimeList: list[str]
 100、90 threshold ===> 600s
 """
 def checkLessThanThreshold(BaseTime, CheckedTimeList):
-    result = [CalDiffTime(BaseTime, time)<600 for time in CheckedTimeList]
+    result = [CalDiffTime(BaseTime, time)<1800 for time in CheckedTimeList]
     """
     如果false數量等同於串列長度，代表所有東西都超出閥值，600===> 10分鐘
     """
@@ -68,9 +68,9 @@ def isValid(BaseTime, CheckedTimeList, ThresHold_Type):
     (數值部分都可以自己在調整看看)
     """
     if ThresHold_Type == 1:
-        ThresHold = 600
+        ThresHold = 1800
     else:
-        ThresHold = 3600
+        ThresHold = 4800
 
     for time in CheckedTimeList:
         if CalDiffTime(BaseTime, time) < ThresHold:
@@ -278,15 +278,28 @@ def PredictedStatus(HDriveTime, KmeansCenter1, KmeansCenter2, BusStatus, Routeid
 
 """
 將推論結果儲存到excel表中，之後再做簡報會比較方便一些...
+按 {routeid}_{direction}_{day} 分檔儲存
 """
-def StoredResult(ResultList1, ResultList2, ResultList3):
-    if not os.path.exists("inference_acc.xlsx"):
+def StoredResult(ResultList1, ResultList2, ResultList3, routeid=None, direction=None, day=None, mode=None):
+    # 建立輸出資料夾
+    output_dir = "inference_acc"
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    
+    # 決定檔案名稱
+    if routeid is not None and direction is not None and day is not None:
+        filename = f"{output_dir}/inference_acc_{routeid}_{direction}_{day}.xlsx"
+    else:
+        filename = "inference_acc.xlsx"
+    
+    # 如果檔案不存在，建立新檔案
+    if not os.path.exists(filename):
         FileWB = Workbook()
         for index in range(1, 4):
             FileWS = FileWB.create_sheet(title=f"{index}")
-        FileWB.save("inference_acc.xlsx")
+        FileWB.save(filename)
 
-    FileWB = load_workbook("inference_acc.xlsx")
+    FileWB = load_workbook(filename)
 
     for index, ResultList in enumerate([ResultList1, ResultList2, ResultList3], start=1):
         if index == 3:
@@ -302,13 +315,16 @@ def StoredResult(ResultList1, ResultList2, ResultList3):
         Result_60 = f"{round((correct_60 / total) - (correct_30/ total), 4)}/ {correct_60 - correct_30}"
         Result_120 = f"{round((correct_120 / total) - (correct_60/ total), 4)}/ {correct_120 - correct_60}"
 
-        if index ==3:
+        # 加入模式標記
+        mode_label = mode if mode else ""
+
+        if index == 3:
             Result_300 = f"{round((correct_300 / total) - (correct_120/ total), 4)}/ {correct_300 - correct_120}"
             Result_others = f"{round(1 - (correct_300/ total), 4)}/ {total - correct_300}"
-            FileWS.append([total, Result_10, Result_20, Result_30, Result_60, Result_120, Result_300, Result_others])
+            FileWS.append([mode_label, total, Result_10, Result_20, Result_30, Result_60, Result_120, Result_300, Result_others])
         else:
             Result_others = f"{round(1 - (correct_120/ total), 4)}/ {total - correct_120}"
-            FileWS.append([total, Result_10, Result_20, Result_30, Result_60, Result_120, Result_others])
+            FileWS.append([mode_label, total, Result_10, Result_20, Result_30, Result_60, Result_120, Result_others])
         
-    FileWB.save("inference_acc.xlsx")
-    print("預測完成...")
+    FileWB.save(filename)
+    print(f"預測完成... 結果儲存於 {filename}")

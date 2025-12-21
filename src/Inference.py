@@ -156,4 +156,5 @@ if __name__ == "__main__":
 
     StoredResult([total_1, correct_10_1, correct_20_1, correct_30_1, correct_60_1, correct_120_1], 
                 [total_2, correct_10_2, correct_20_2, correct_30_2, correct_60_2, correct_120_2], 
-                [total_3, correct_10_3, correct_20_3, correct_30_3, correct_60_3, correct_120_3, correct_300_3])
+                [total_3, correct_10_3, correct_20_3, correct_30_3, correct_60_3, correct_120_3, correct_300_3],
+                routeid=ROUTEID, direction=DIRECTION, day=DAY, mode=MODE)

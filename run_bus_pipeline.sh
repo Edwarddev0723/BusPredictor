@@ -195,32 +195,26 @@ for DAY in $DAYS; do
     echo -e "${GREEN}✓ 訓練資料準備完成 (星期 $DAY)${NC}"
     echo ""
 
-    # 步驟 4: 模型訓練 (所有模式)
-    echo -e "${GREEN}步驟 4/5: 模型訓練 (星期 $DAY)${NC}"
-    for MODE in a c r ac ar cr acr; do
-        echo -e "  訓練模式: ${YELLOW}$MODE${NC}"
-        python src/Train.py \
-            --routeid $ROUTEID \
-            --direction $DIRECTION \
-            --epoch $EPOCH \
-            --day $DAY \
-            --mode $MODE
-    done
+    # 步驟 4: 模型訓練 (所有模式 - 優化版，一次執行)
+    echo -e "${GREEN}步驟 4/5: 模型訓練 (星期 $DAY) - 優化版${NC}"
+    python src/Train_optimized.py \
+        --routeid $ROUTEID \
+        --direction $DIRECTION \
+        --epoch $EPOCH \
+        --day $DAY \
+        --modes all
     echo -e "${GREEN}✓ 模型訓練完成 (星期 $DAY)${NC}"
     echo ""
 
-    # 步驟 5: 推論
-    echo -e "${GREEN}步驟 5/5: 推論 (星期 $DAY)${NC}"
-    for MODE in a c r ac ar cr acr; do
-        echo -e "  推論模式: ${YELLOW}$MODE${NC}"
-        python src/Inference.py \
-            --routeid $ROUTEID \
-            --direction $DIRECTION \
-            --start_date $START_DATE \
-            --end_date $END_DATE \
-            --day $DAY \
-            --mode $MODE
-    done
+    # 步驟 5: 推論 (所有模式 - 優化版，一次執行)
+    echo -e "${GREEN}步驟 5/5: 推論 (星期 $DAY) - 優化版${NC}"
+    python src/Inference_optimized.py \
+        --routeid $ROUTEID \
+        --direction $DIRECTION \
+        --start_date $START_DATE \
+        --end_date $END_DATE \
+        --day $DAY \
+        --modes all
     echo -e "${GREEN}✓ 推論完成 (星期 $DAY)${NC}"
     echo ""
 done
@@ -237,4 +231,4 @@ echo "  - 統計結果: StatisticResult/$ROUTEID/"
 echo "  - 訓練資料: training_dataset/$ROUTEID/$DIRECTION/"
 echo "  - 訓練參數: training_result/$ROUTEID/$DIRECTION/"
 echo "  - 推論結果: inference_result/$ROUTEID/$DIRECTION/"
-echo "  - 準確度統計: inference_acc.xlsx"
+echo "  - 準確度統計: inference_acc/inference_acc_${ROUTEID}_${DIRECTION}_*.xlsx"
