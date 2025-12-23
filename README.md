@@ -211,3 +211,118 @@ python Inference.py --routeid 100 --direction 0 --day 3 --mode acr --start_date 
 - `Train.py`：逐站訓練與最佳參數輸出。  
 - `Inference.py`：逐站推論與誤差區間評估。  
 - `Tool.py`：時間處理與結果彙整工具。
+
+---
+
+## 優化版本 (Optimized)
+
+針對執行效能進行優化的版本，大幅減少 I/O 操作和重複計算。
+
+### 優化檔案
+
+| 原版 | 優化版 | 優化內容 |
+|------|--------|----------|
+| `TrainingDataPrepare.py` | `TrainingDataPrepare_optimized.py` | 預載快取、索引查詢、一次寫入 |
+| `Train.py` | `Train_optimized.py` | 一次讀取資料，訓練所有模式 |
+| `Inference.py` | `Inference_optimized.py` | 一次讀取資料，推論所有模式 |
+
+### 效能提升
+
+| 步驟 | 原版耗時 | 優化版耗時 | 加速比 |
+|------|----------|------------|--------|
+| TrainingDataPrepare | ~10 小時 | ~2-3 小時 | 3-5x |
+| Train (7 模式) | 7 次 Excel I/O | 1 次 Excel I/O | 7x |
+| Inference (7 模式) | 7 次 Excel I/O | 1 次 Excel I/O | 7x |
+
+### 優化版使用方式
+
+```bash
+# 訓練資料準備 (優化版)
+python src/TrainingDataPrepare_optimized.py --routeid 100 --direction 0 --day 4 --start_date 2025-08-01 --end_date 2025-10-31
+
+# 訓練所有模式 (優化版，一次執行)
+python src/Train_optimized.py --routeid 100 --direction 0 --epoch 300 --day 4 --modes all
+
+# 推論所有模式 (優化版，一次執行)
+python src/Inference_optimized.py --routeid 100 --direction 0 --day 4 --start_date 2025-08-01 --end_date 2025-10-31 --modes all
+```
+
+### 優化版參數說明
+
+**Train_optimized.py / Inference_optimized.py**:
+- `--modes`：指定要執行的模式
+  - `all`：執行所有 7 種模式 (a, c, r, ac, ar, cr, acr)
+  - `a,ac,acr`：只執行指定模式（逗號分隔）
+
+---
+
+## 自動化腳本
+
+### run_bus_pipeline.sh
+
+一鍵執行完整流程（資料前處理 → 訓練準備 → 模型訓練 → 推論）。
+
+```bash
+# 基本用法
+./run_bus_pipeline.sh --routeid 100 --direction 0
+
+# 指定星期
+./run_bus_pipeline.sh --routeid 100 --direction 0 --days "4 5"
+
+# 完整參數
+./run_bus_pipeline.sh --routeid 100 --direction 0 --days "4 5" --start_date 2025-08-01 --end_date 2025-10-31 --epoch 300
+```
+
+**參數說明**:
+| 參數 | 說明 | 預設值 |
+|------|------|--------|
+| `--routeid` | 路線編號 (必填) | - |
+| `--direction` | 方向 0/1 (必填) | - |
+| `--days` | 要處理的星期 | "4 5" |
+| `--start_date` | 開始日期 | 2025-08-01 |
+| `--end_date` | 結束日期 | 2025-10-31 |
+| `--epoch` | 訓練週期數 | 300 |
+
+**執行流程**:
+1. 資料前處理 (StasticDataPrepare)
+2. 產生 predictions.xlsx (GeneratePredictions)
+3. 訓練資料準備 (TrainingDataPrepare_optimized)
+4. 模型訓練 (Train_optimized)
+5. 推論 (Inference_optimized)
+
+**輸出結果**:
+- `StatisticResult/{routeid}/` - 統計結果
+- `training_dataset/{routeid}/{direction}/` - 訓練資料
+- `training_result/{routeid}/{direction}/` - 訓練參數
+- `inference_result/{routeid}/{direction}/` - 推論結果
+- `inference_acc/inference_acc_{routeid}_{direction}_{day}.xlsx` - 準確度統計
+
+---
+
+## ⚠️ 609 路公車特殊設定
+
+609 路（哈佛快線）站距遠大於一般路線，需修改 `src/Tool.py` 中的閥值：
+
+### isValid 函式
+```python
+# 100、90 路
+if ThresHold_Type == 1:
+    ThresHold = 600   # 10 分鐘
+else:
+    ThresHold = 3600  # 1 小時
+
+# 609 路 (需手動修改)
+if ThresHold_Type == 1:
+    ThresHold = 1800  # 30 分鐘
+else:
+    ThresHold = 4800  # 80 分鐘
+```
+
+### checkLessThanThreshold 函式
+```python
+# 100、90 路
+result = [CalDiffTime(BaseTime, time) < 600 for time in CheckedTimeList]
+
+# 609 路 (需手動修改)
+result = [CalDiffTime(BaseTime, time) < 1800 for time in CheckedTimeList]
+```
